@@ -1,7 +1,12 @@
 {
   "resources": {
     "includes": [
-      { "pattern": ".*\\..*" }
+      {
+        "pattern": "log4j\\.properties"
+      },
+      {
+        "pattern": "config\\.properties"
+      }
     ]
   }
 }
