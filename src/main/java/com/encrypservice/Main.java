@@ -1,37 +1,37 @@
 package com.encrypservice;
 
-import com.encrypservice.Socket.SSLClient;
-import com.encrypservice.Socket.Server;
-import com.encrypservice.TCP.TcpClient;
-import com.encrypservice.TCP.TcpServer;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import com.encrypservice.socket.NioSslClient;
+import com.encrypservice.socket.NioSslServer;
 
 public class Main {
 
    static Loadproperties loadproperties;
-   static GenerateKeys generateKeys;
    static Arguments arguments;
-   static EncryptMessage encryptMessage;
-   static TcpServer tcpServer;
-   static TcpClient tcpClient;
-   static Server Server;
-   static SSLClient sslClient;
 
    public static void main(String[] args) {
 
       try {
 
-         // load properties & arguments & check network
-         loadproperties = new Loadproperties("config.properties");
-         arguments = new Arguments(args);
-         new CheckNetwork(arguments);
-         // start server or client
-         if (arguments.isServer()) {
-            Server = new Server(arguments, loadproperties);
-            Server.start(new String[] {});
-         } else {
-            SSLClient.main(new String[] {});
-         }
+         // Path path = Paths.get(System.getProperty("user.dir"), "config.properties");
+         Path jarDir = Paths.get(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent();
 
+         // Construct the path to the config.properties file beside the JAR
+         Path configPath = jarDir.resolve("config.properties");
+
+         // Load properties from the config file
+         loadproperties = new Loadproperties(configPath.toString());
+         // arguments = new Arguments(args);
+         // new CheckNetwork(arguments);
+         // if (arguments.isServer()) {
+         //    NioSslServer server = new NioSslServer(arguments);
+         //    server.start();
+         // } else {
+         //    NioSslClient client = new NioSslClient(arguments);
+         //    client.start();
+         // }
       } catch (Exception e) {
          e.printStackTrace();
       }

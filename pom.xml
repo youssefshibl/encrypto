@@ -12,6 +12,8 @@
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <log4j-version>1.2.17</log4j-version>
+        <native.maven.plugin.version>0.10.3</native.maven.plugin.version>
     </properties>
 
     <build>
@@ -30,28 +32,37 @@
                     </archive>
                 </configuration>
             </plugin>
-            <!-- <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
                 <executions>
                     <execution>
-                        <phase>compile</phase>
+                        <phase>package</phase>
                         <goals>
-                            <goal>java</goal>
+                            <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.encrypservice.Main</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M7</version>
                 <configuration>
-                    <mainClass>com.encrypservice.Main</mainClass>
-                    <arguments>
-                        <argument>server</argument>
-                        <argument>8050</argument>
-                        <argument>127.0.0.1</argument>
-                        <argument>5000</argument>
-                    </arguments>    
+                    <argLine>-Xmx2G -XX:ParallelGCThreads=4</argLine>
                 </configuration>
-            </plugin> -->
+            </plugin>
+
         </plugins>
         <resources>
             <resource>
@@ -60,5 +71,54 @@
             </resource>
         </resources>
     </build>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${log4j-version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <mainClass>com.encrypservice.Main</mainClass>
+                            <outputDirectory>${project.build.directory}/native</outputDirectory>
+                            <imageName>${project.artifactId}</imageName>
+                            <buildArgs>
+                                <!-- Automatically include resource files -->
+                                <buildArg>--enable-url-protocols=http,https</buildArg>
+                                <buildArg>-H:IncludeResourceBundles=com.encrypservice.bundles</buildArg>
+                                <buildArg>-H:IncludeResources=".*"</buildArg>
+                                <buildArg>-R:MaxHeapSize=2G</buildArg>
+                                <buildArg>-J-Djava.util.concurrent.ForkJoinPool.common.parallelism=4</buildArg>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 
 </project>
