@@ -13,6 +13,10 @@ import java.nio.channels.spi.SelectorProvider;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.util.Iterator;
+import java.io.FileInputStream;
+import java.io.File;
+import java.net.URISyntaxException;
+
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -37,10 +41,21 @@ public class NioSslClient extends NioSslPeer {
     public NioSslClient(Arguments arguments) throws Exception {
         this.arguments = arguments;
         SSLContext context = SSLContext.getInstance("TLSv1.2");
+        // load files
+        File jarDir;
+        try {
+            jarDir = new File(NioSslServer.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
+            System.out.println("JAR file path: " + jarDir.getAbsolutePath()); 
+        } catch (URISyntaxException e) {
+            throw new IOException("Error determining the JAR directory.", e);
+        }
+
+        File keyStoreFile = new File(jarDir, "client.jks");
+        File trustStoreFile = new File(jarDir, "trustedCerts.jks");
 
         // Load keystore and truststore from resources
-        try (InputStream keyStoreStream = getClass().getClassLoader().getResourceAsStream("client.jks");
-                InputStream trustStoreStream = getClass().getClassLoader().getResourceAsStream("trustedCerts.jks")) {
+        try (InputStream keyStoreStream = new FileInputStream(keyStoreFile);
+        InputStream trustStoreStream = new FileInputStream(trustStoreFile) ) {
 
             if (keyStoreStream == null || trustStoreStream == null) {
                 throw new FileNotFoundException("Keystore or truststore file not found in resources");
@@ -48,6 +63,8 @@ public class NioSslClient extends NioSslPeer {
 
             context.init(createKeyManagers(keyStoreStream, "storepass", "storepass"),
                     createTrustManagers(trustStoreStream, "storepass"), new SecureRandom());
+        }catch (IOException e) {
+            throw new IOException("Error loading keystore or truststore from external file", e);
         }
 
         engine = context.createSSLEngine(arguments.ClientHost, Integer.parseInt(arguments.ClientPort));

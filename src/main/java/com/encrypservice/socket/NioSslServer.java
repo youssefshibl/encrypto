@@ -23,6 +23,9 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import java.io.FileInputStream;
+import java.io.File;
+import java.net.URISyntaxException;
 
 import com.encrypservice.Arguments;
 
@@ -35,18 +38,33 @@ public class NioSslServer extends NioSslPeer {
     private SocketChannel unencryptedServerSocketChannel;
 
     public NioSslServer(Arguments args) throws Exception {
-
         this.arguments = args;
-        context = SSLContext.getInstance("TLSv1.2");
-        try (InputStream keyStoreStream = getClass().getClassLoader().getResourceAsStream("server.jks");
-                InputStream trustStoreStream = getClass().getClassLoader().getResourceAsStream("trustedCerts.jks")) {
+        File jarDir;
+        try {
+            jarDir = new File(NioSslServer.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
+            System.out.println("JAR file path: " + jarDir.getAbsolutePath()); 
+        } catch (URISyntaxException e) {
+            throw new IOException("Error determining the JAR directory.", e);
+        }
+        File keyStoreFile = new File(jarDir, "server.jks");
+        File trustStoreFile = new File(jarDir, "trustedCerts.jks");
 
-            if (keyStoreStream == null || trustStoreStream == null) {
-                throw new FileNotFoundException("Keystore or truststore file not found in resources");
+        context = SSLContext.getInstance("TLSv1.2");
+        try (InputStream keyStoreStream = new FileInputStream(keyStoreFile);
+             InputStream trustStoreStream = new FileInputStream(trustStoreFile)) {
+
+            if (!keyStoreFile.exists() || !trustStoreFile.exists()) {
+                throw new IOException("Keystore or truststore file not found beside the JAR file.");
             }
 
-            context.init(createKeyManagers(keyStoreStream, "storepass", "storepass"),
-                    createTrustManagers(trustStoreStream, "storepass"), new SecureRandom());
+            // Initialize the SSLContext with key and trust managers
+            context.init(
+                createKeyManagers(keyStoreStream, "storepass", "storepass"),
+                createTrustManagers(trustStoreStream, "storepass"),
+                new SecureRandom()
+            );
+        }catch (IOException e) {
+            throw new IOException("Error loading keystore or truststore from external file", e);
         }
         SSLSession dummySession = context.createSSLEngine().getSession();
         myAppData = ByteBuffer.allocate(dummySession.getApplicationBufferSize());

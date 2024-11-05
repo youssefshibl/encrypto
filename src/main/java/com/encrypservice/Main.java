@@ -15,23 +15,19 @@ public class Main {
 
       try {
 
-         // Path path = Paths.get(System.getProperty("user.dir"), "config.properties");
-         Path jarDir = Paths.get(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent();
-
-         // Construct the path to the config.properties file beside the JAR
-         Path configPath = jarDir.resolve("config.properties");
+         String propertiesFileName = "config.properties";
 
          // Load properties from the config file
-         loadproperties = new Loadproperties(configPath.toString());
-         // arguments = new Arguments(args);
-         // new CheckNetwork(arguments);
-         // if (arguments.isServer()) {
-         //    NioSslServer server = new NioSslServer(arguments);
-         //    server.start();
-         // } else {
-         //    NioSslClient client = new NioSslClient(arguments);
-         //    client.start();
-         // }
+         loadproperties = new Loadproperties("config.properties");
+         arguments = new Arguments(args);
+         new CheckNetwork(arguments);
+         if (arguments.isServer()) {
+            NioSslServer server = new NioSslServer(arguments);
+            server.start();
+         } else {
+            NioSslClient client = new NioSslClient(arguments);
+            client.start();
+         }
       } catch (Exception e) {
          e.printStackTrace();
       }
