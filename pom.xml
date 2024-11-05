@@ -54,14 +54,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M7</version>
-                <configuration>
-                    <argLine>-Xmx2G -XX:ParallelGCThreads=4</argLine>
-                </configuration>
-            </plugin>
 
         </plugins>
         <resources>
@@ -106,12 +98,7 @@
                             <outputDirectory>${project.build.directory}/native</outputDirectory>
                             <imageName>${project.artifactId}</imageName>
                             <buildArgs>
-                                <!-- Automatically include resource files -->
-                                <buildArg>--enable-url-protocols=http,https</buildArg>
-                                <buildArg>-H:IncludeResourceBundles=com.encrypservice.bundles</buildArg>
-                                <buildArg>-H:IncludeResources=".*"</buildArg>
-                                <buildArg>-R:MaxHeapSize=2G</buildArg>
-                                <buildArg>-J-Djava.util.concurrent.ForkJoinPool.common.parallelism=4</buildArg>
+                                <buildArg>-H:Log=registerResource:3</buildArg>
                             </buildArgs>
                         </configuration>
                     </plugin>
