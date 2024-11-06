@@ -1,16 +1,14 @@
-name: Build Encrypto Deb Package
+name: Build and Release Encrypto Deb Package
 
 on:
   push:
-    branches: [deb]
+    tags:
+      - 'v*.*.*'  
 
 jobs:
-  build:
-    name: Build Encrypto to Binary
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
+  build-and-release:
+    name: Build and Release Encrypto Binary
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -33,9 +31,22 @@ jobs:
 
       - name: Build encrypto with Maven
         run: mvn clean package -Pnative
-        
-      - name: Upload binary as artifact
-        uses: actions/upload-artifact@v3
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: encrypto-binary
-          path: target/native/encrypto
+          tag_name: ${{ github.ref_name }}  
+          release_name: 'Build Encrypto Deb Package'
+          draft: false
+          prerelease: false
+
+      - name: Upload Binary to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: target/native/encrypto
+          asset_name: encrypto
+          asset_content_type: application/octet-stream
