@@ -49,6 +49,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/native/  
+          asset_path: target/native/encrypto  
           asset_name: encrypto
           asset_content_type: application/octet-stream
