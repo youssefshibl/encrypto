@@ -1,0 +1,9 @@
+Package: encrypto
+Version: 1.0-1
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: Baeldung <test@test.com>
+Description: this software does some work
+  This is its extended description.
+Extended-Description: test desc

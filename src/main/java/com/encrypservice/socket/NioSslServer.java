@@ -26,6 +26,8 @@ import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
 import java.io.File;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import com.encrypservice.Arguments;
 
@@ -39,15 +41,18 @@ public class NioSslServer extends NioSslPeer {
 
     public NioSslServer(Arguments args) throws Exception {
         this.arguments = args;
-        File jarDir;
-        try {
-            jarDir = new File(NioSslServer.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
-            System.out.println("JAR file path: " + jarDir.getAbsolutePath()); 
-        } catch (URISyntaxException e) {
-            throw new IOException("Error determining the JAR directory.", e);
-        }
-        File keyStoreFile = new File(jarDir, "server.jks");
-        File trustStoreFile = new File(jarDir, "trustedCerts.jks");
+        // File jarDir;
+        // try {
+        //     jarDir = new File(NioSslServer.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
+        //     System.out.println("JAR file path: " + jarDir.getAbsolutePath()); 
+        // } catch (URISyntaxException e) {
+        //     throw new IOException("Error determining the JAR directory.", e);
+        // }
+        Path executableDir = Paths.get(System.getProperty("user.dir"));
+        // File keyStoreFile = new File(jarDir, "server.jks");
+        // File trustStoreFile = new File(jarDir, "trustedCerts.jks");
+        File keyStoreFile = new File(executableDir.toFile(), "server.jks");
+        File trustStoreFile = new File(executableDir.toFile(), "trustedCerts.jks");
 
         context = SSLContext.getInstance("TLSv1.2");
         try (InputStream keyStoreStream = new FileInputStream(keyStoreFile);
