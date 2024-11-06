@@ -33,3 +33,9 @@ jobs:
 
       - name: Build encrypto with Maven
         run: mvn clean package -Pnative
+        
+      - name: Upload binary as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: encrypto-binary
+          path: target/native/encrypto
