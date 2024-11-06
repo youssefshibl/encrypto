@@ -45,8 +45,10 @@ jobs:
 
       - name: Upload Binary to Release
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/native/encrypto
+          asset_path: target/native/  
           asset_name: encrypto
           asset_content_type: application/octet-stream
