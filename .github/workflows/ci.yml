@@ -38,6 +38,8 @@ jobs:
           version=${version#v}
           sed -i "s/^Version:.*/Version: ${version}/" ./encrypto/DEBIAN/control
           dpkg-deb --root-owner-group --build encrypto
+          sudo apt-get update
+          sudo apt install lintian -y
           lintian encrypto.deb
 
       - name: Create GitHub Release
