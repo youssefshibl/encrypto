@@ -21,8 +21,8 @@ try:
         
         print(f"Sent UUID: {generated_uuid}")
         
-        # Sleep for a random time between 50 ms and 500 ms
-        time.sleep(random.uniform(0.05, 0.5))
+        # Sleep for a random time between 10 ms and 100 ms
+        time.sleep(random.uniform(0.01, 0.1))
 except KeyboardInterrupt:
     print("\nClient terminated by user.")
 

@@ -1,29 +1,26 @@
 import matplotlib.pyplot as plt
-from datetime import datetime
+import numpy as np
 
-def convert_to_microseconds(timestamp):
+def convert_to_milliseconds(timestamp):
     seconds, nanoseconds = timestamp.split(".")
-    return int(seconds) * 1_000_000 + int(nanoseconds) // 1_000  
+    return int(seconds) * 1_000 + int(nanoseconds) // 1_000_000  
 
 # Read the data from both capture files
 def read_capture_file(filename):
     capture_data = {}
     with open(filename, 'r') as file:
         for line in file:
-            
             fields = line.strip().split('\t')
-            if len(fields) < 4:
+            if len(fields) < 3:
                 continue  
 
             timestamp = fields[0] 
             seq_number = fields[1] 
-            src_ip = fields[2]  
-            dst_ip = fields[3]  
+            uuid = fields[2]  
 
-            capture_data[seq_number] = {
+            capture_data[uuid] = {
                 "timestamp": timestamp,
-                "src_ip": src_ip,
-                "dst_ip": dst_ip,
+                "seq_number": seq_number,
             }
     return capture_data
 
@@ -33,34 +30,67 @@ def process_capture_files(capture_file_9003, capture_file_9001):
 
     seq_numbers = []
     latencies = []
+    missing_seq_numbers = []
 
-    for seq in capture_data_9003:
-        if seq in capture_data_9001:
-            timestamp_9003 = capture_data_9003[seq]['timestamp']
-            timestamp_9001 = capture_data_9001[seq]['timestamp']
+    for uuid in capture_data_9001:
+        if uuid in capture_data_9003:
+            timestamp_9003 = capture_data_9003[uuid]['timestamp']
+            timestamp_9001 = capture_data_9001[uuid]['timestamp']
+            seq_number = capture_data_9003[uuid]['seq_number']
             
-            # Convert timestamps to microseconds
-            timestamp_9003_us = convert_to_microseconds(timestamp_9003)
-            timestamp_9001_us = convert_to_microseconds(timestamp_9001)
+            # Convert timestamps to milliseconds
+            timestamp_9003_ms = convert_to_milliseconds(timestamp_9003)
+            timestamp_9001_ms = convert_to_milliseconds(timestamp_9001)
 
-            time_diff_us = timestamp_9003_us - timestamp_9001_us
+            time_diff_ms = timestamp_9001_ms - timestamp_9003_ms
 
-            seq_numbers.append(int(seq))
-            latencies.append(time_diff_us)
+            seq_numbers.append(int(seq_number))
+            latencies.append(time_diff_ms)
 
-            print(f"Seq: {seq}, Time Diff: {time_diff_us} µs (Start: {timestamp_9003}, End: {timestamp_9001})")
+            # print(f"Seq Number: {seq_number}, Time Diff: {time_diff_ms} ms (Start: {timestamp_9003}, End: {timestamp_9001})")
+        else:
+            missing_seq_numbers.append(capture_data_9001[uuid]['seq_number'])
+
     
+    # Calculate statistics
+    avg_latency = np.mean(latencies)
+    p95_latency = np.percentile(latencies, 95)
+    p99_latency = np.percentile(latencies, 99)
+
     plt.figure(figsize=(10, 6))
-    plt.plot(seq_numbers, latencies ,color='b', linestyle='-')
+    plt.scatter(seq_numbers, latencies, color='b', s=10)  # Use scatter plot for scalability
+    # plt.plot(seq_numbers, latencies, color='b', linestyle='-')  # Add lines between points
+
+    # mark missing sequence numbers as red points
+    if missing_seq_numbers:
+        missing_seq_numbers_x = [int(seq_number) for seq_number in missing_seq_numbers]
+        missing_seq_numbers_y = [0] * len(missing_seq_numbers)
+        plt.plot(missing_seq_numbers_x, missing_seq_numbers_y, 'ro', label='Missing ' + str(len(missing_seq_numbers)) + ' seq numbers')
+
+
+
+    # Add lines for average, P95, and P99 latencies
+    plt.axhline(y=avg_latency, color='g', linestyle='--', label=f'Average: {avg_latency:.2f} ms')
+    plt.axhline(y=p95_latency, color='r', linestyle='--', label=f'P95: {p95_latency:.2f} ms')
+    plt.axhline(y=p99_latency, color='m', linestyle='--', label=f'P99: {p99_latency:.2f} ms')
+
+    #  add total number of packets label
+    plt.text(0.5, 0.5, f'Total Packets: {len(seq_numbers)}', horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
+
     plt.title("Latency vs Sequence Number")
     plt.xlabel("Sequence Number")
-    plt.ylabel("Latency (µs)")
+    plt.ylabel("Latency (ms)")
     plt.grid()
 
-    plt.savefig("latency_vs_sequence.png")
-    print("Plot saved as 'latency_vs_sequence.png'")
+    # Adjust x-axis ticks for better readability
+    plt.xticks(rotation=45)
+    plt.locator_params(axis='x', nbins=10)
 
-    # plt.show()
+    plt.legend()
+    plt.savefig("latency_vs_seq_number.png")
+    print("Plot saved as 'latency_vs_seq_number.png'")
+
+    plt.show()
 
 capture_file_9003 = 'capture_port_9003.txt'
 capture_file_9001 = 'capture_port_9001.txt'
