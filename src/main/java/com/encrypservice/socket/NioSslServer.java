@@ -152,7 +152,6 @@ public class NioSslServer extends NioSslPeer {
         engine.beginHandshake();
 
         if (doHandshake(socketChannel, engine)) {
-            socketChannel.socket().setTcpNoDelay(true);
             socketChannel.register(selector, SelectionKey.OP_READ, engine);
         } else {
             socketChannel.close();
@@ -264,9 +263,6 @@ public class NioSslServer extends NioSslPeer {
             while (!unencryptedServerSocketChannel.finishConnect()) {
                 log.debug("Still connecting to unencrypted server...");
             }
-            // set TCP_NODELAY to true to disable Nagle's algorithm which merges small packets
-            unencryptedServerSocketChannel.socket().setTcpNoDelay(true);
-
             log.debug("Connected to unencrypted server!");
         } catch (Exception e) {
             log.error("Could not connect to unencrypted server: " + e.getMessage());

@@ -95,7 +95,8 @@ wait $PID_CLIENT_PROFILER
 python3 process_capture.py
 
 
-# rm -f ./client.log ./server.log ./capture_port_9001.txt ./capture_port_9003.txt
+rm -f ./capture_port_9001.txt ./capture_port_9003.txt ./capture_port_9003_.txt ./capture_port_9001_.txt
+rm -f ./client.log ./server.log
 
 echo "### Monitoring Complete ###"
 

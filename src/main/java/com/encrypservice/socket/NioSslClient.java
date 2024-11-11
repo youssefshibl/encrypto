@@ -102,7 +102,6 @@ public class NioSslClient extends NioSslPeer {
             }
             engine.beginHandshake();
             doHandshake(socketChannel, engine);
-            socketChannel.socket().setTcpNoDelay(true);
             startUnEncryptedServer();
             StartReciveUnEncryptedServer();
         } catch (Exception e) {
@@ -236,7 +235,6 @@ public class NioSslClient extends NioSslPeer {
                     if (attachment.equals("unednecrypted")) {
                         if (key.isAcceptable()) {
                             SocketChannel client = serverUnEncryptedChannel.accept();
-                            client.socket().setTcpNoDelay(true);
                             client.configureBlocking(false);
                             client.register(selector, SelectionKey.OP_READ, "unednecrypted");
                         }
