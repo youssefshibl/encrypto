@@ -44,20 +44,9 @@ public class NioSslClient extends NioSslPeer {
         this.arguments = arguments;
         SSLContext context = SSLContext.getInstance("TLSv1.2");
         // load files
-        // File jarDir;
-        // try {
-        //     jarDir = new File(NioSslServer.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
-        //     System.out.println("JAR file path: " + jarDir.getAbsolutePath()); 
-        // } catch (URISyntaxException e) {
-        //     throw new IOException("Error determining the JAR directory.", e);
-        // }
         Path executableDir = Paths.get(System.getProperty("user.dir"));
-
-        // File keyStoreFile = new File(jarDir, "client.jks");
-        // File trustStoreFile = new File(jarDir, "trustedCerts.jks");
         File keyStoreFile = new File(executableDir.toFile(), "client.jks");
         File trustStoreFile = new File(executableDir.toFile(), "trustedCerts.jks");
-
         // Load keystore and truststore from resources
         try (InputStream keyStoreStream = new FileInputStream(keyStoreFile);
         InputStream trustStoreStream = new FileInputStream(trustStoreFile) ) {
