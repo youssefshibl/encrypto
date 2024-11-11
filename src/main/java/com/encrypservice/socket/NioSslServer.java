@@ -1,6 +1,7 @@
 package com.encrypservice.socket;
 
-import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -10,6 +11,8 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.util.Iterator;
@@ -23,11 +26,6 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.FileInputStream;
-import java.io.File;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import com.encrypservice.Arguments;
 
@@ -154,6 +152,7 @@ public class NioSslServer extends NioSslPeer {
         engine.beginHandshake();
 
         if (doHandshake(socketChannel, engine)) {
+            socketChannel.socket().setTcpNoDelay(true);
             socketChannel.register(selector, SelectionKey.OP_READ, engine);
         } else {
             socketChannel.close();
@@ -173,7 +172,8 @@ public class NioSslServer extends NioSslPeer {
                 switch (result.getStatus()) {
                     case OK:
                         peerAppData.flip();
-                        log.debug("Incoming message: " + new String(peerAppData.array()));
+                        String message = new String(peerAppData.array(), peerAppData.position(), peerAppData.limit() - peerAppData.position());
+                        log.debug("Incoming message: " + message);
                         // check if unecrypted connection is active
                         try {
                             if (unencryptedServerSocketChannel.isOpen()) {
@@ -264,6 +264,9 @@ public class NioSslServer extends NioSslPeer {
             while (!unencryptedServerSocketChannel.finishConnect()) {
                 log.debug("Still connecting to unencrypted server...");
             }
+            // set TCP_NODELAY to true to disable Nagle's algorithm which merges small packets
+            unencryptedServerSocketChannel.socket().setTcpNoDelay(true);
+
             log.debug("Connected to unencrypted server!");
         } catch (Exception e) {
             log.error("Could not connect to unencrypted server: " + e.getMessage());

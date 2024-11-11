@@ -32,8 +32,8 @@ def process_capture_files(capture_file_9003, capture_file_9001):
     latencies = []
     missing_seq_numbers = []
 
-    for uuid in capture_data_9001:
-        if uuid in capture_data_9003:
+    for uuid in capture_data_9003 :
+        if uuid in capture_data_9001:
             timestamp_9003 = capture_data_9003[uuid]['timestamp']
             timestamp_9001 = capture_data_9001[uuid]['timestamp']
             seq_number = capture_data_9003[uuid]['seq_number']
@@ -49,7 +49,7 @@ def process_capture_files(capture_file_9003, capture_file_9001):
 
             # print(f"Seq Number: {seq_number}, Time Diff: {time_diff_ms} ms (Start: {timestamp_9003}, End: {timestamp_9001})")
         else:
-            missing_seq_numbers.append(capture_data_9001[uuid]['seq_number'])
+            missing_seq_numbers.append(capture_data_9003[uuid]['seq_number'])
 
     
     # Calculate statistics
@@ -75,7 +75,8 @@ def process_capture_files(capture_file_9003, capture_file_9001):
     plt.axhline(y=p99_latency, color='m', linestyle='--', label=f'P99: {p99_latency:.2f} ms')
 
     #  add total number of packets label
-    plt.text(0.5, 0.5, f'Total Packets: {len(seq_numbers)}', horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
+    plt.text(0.5, 0.5, f'Total Packets: {len(capture_data_9003)}', horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
+    
 
     plt.title("Latency vs Sequence Number")
     plt.xlabel("Sequence Number")
@@ -90,9 +91,27 @@ def process_capture_files(capture_file_9003, capture_file_9001):
     plt.savefig("latency_vs_seq_number.png")
     print("Plot saved as 'latency_vs_seq_number.png'")
 
-    plt.show()
+    # plt.show()
+def process_file(input_file, output_file):
+    with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
+        new_seq_number = 1  
 
+        for line in infile:
+            parts = line.strip().split("\t")
+            if len(parts) < 3:
+                continue
+            timestamp = parts[0]
+            original_seq = parts[1]
+            uuids = parts[2].split("$")
+            for uuid in filter(bool, uuids):
+                outfile.write(f"{timestamp}\t{new_seq_number}\t{uuid}\n")
+                new_seq_number += 1  # Increment sequence number for the new file
+
+unprocessed_file_9003 = 'capture_port_9003_.txt'
 capture_file_9003 = 'capture_port_9003.txt'
+unprocessed_file_9001 = 'capture_port_9001_.txt'
 capture_file_9001 = 'capture_port_9001.txt'
 
+process_file(unprocessed_file_9003, capture_file_9003)
+process_file(unprocessed_file_9001, capture_file_9001)
 process_capture_files(capture_file_9003, capture_file_9001)
