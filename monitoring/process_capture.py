@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import argparse
+
 
 def convert_to_milliseconds(timestamp):
     seconds, nanoseconds = timestamp.split(".")
@@ -24,7 +26,7 @@ def read_capture_file(filename):
             }
     return capture_data
 
-def process_capture_files(capture_file_9003, capture_file_9001):
+def process_capture_files(capture_file_9003, capture_file_9001,num_packets):
     capture_data_9003 = read_capture_file(capture_file_9003)
     capture_data_9001 = read_capture_file(capture_file_9001)
 
@@ -75,7 +77,7 @@ def process_capture_files(capture_file_9003, capture_file_9001):
     plt.axhline(y=p99_latency, color='m', linestyle='--', label=f'P99: {p99_latency:.2f} ms')
 
     #  add total number of packets label
-    plt.text(0.5, 0.5, f'Total Packets: {len(capture_data_9003)}', horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
+    plt.text(0.5, 0.5, f'Total Packets: {len(capture_data_9003)} \n Packets Rate: {num_packets}P/s', horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
     
 
     plt.title("Latency vs Sequence Number")
@@ -111,7 +113,10 @@ unprocessed_file_9003 = 'capture_port_9003_.txt'
 capture_file_9003 = 'capture_port_9003.txt'
 unprocessed_file_9001 = 'capture_port_9001_.txt'
 capture_file_9001 = 'capture_port_9001.txt'
-
-process_file(unprocessed_file_9003, capture_file_9003)
-process_file(unprocessed_file_9001, capture_file_9001)
-process_capture_files(capture_file_9003, capture_file_9001)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Send UUIDs to a server.")
+    parser.add_argument("num_packets", type=int, help="Number of packets to send")
+    args = parser.parse_args()
+    process_file(unprocessed_file_9003, capture_file_9003)
+    process_file(unprocessed_file_9001, capture_file_9001)
+    process_capture_files(capture_file_9003, capture_file_9001,args.num_packets)

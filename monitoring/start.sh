@@ -92,7 +92,7 @@ wait $PID_CLIENT_PROFILER
 # kill $PID_CLIENT
 # kill $PID_NC
 
-python3 process_capture.py
+python3 process_capture.py $PACKET_NUMBER
 
 
 rm -f ./capture_port_9001.txt ./capture_port_9003.txt ./capture_port_9003_.txt ./capture_port_9001_.txt

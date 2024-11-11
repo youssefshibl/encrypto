@@ -136,6 +136,80 @@ when we capture the packets between the encrypted client and non-encrypted serve
 ### Solution
 we can solve this problem by adding a `uuid` to the data that we send from the unencrypted client to the encrypted client which will send it end to unencrypted server so we can map the packets between the encrypted client and non-encrypted server by the unique id that we added to the data.
 
+but when increase rate of messages which send (message/sec) it make some problems like merge many message in only one message this happend because of many reasons 
++ Nagle's algorithm : nagle's algorithm  is a means of improving the efficiency of TCP/IP networks by reducing the number of packets that need to be sent over the network
++ TCP is a Stream Protocol: TCP is a byte-stream protocol, which means that it treats the data sent across a connection as a continuous stream of bytes. It doesn’t understand or enforce any message boundaries. When you write messages to the socket, they may be combined into a single buffer if they arrive close together.
+
++ Buffer Accumulation: If multiple messages arrive before you read from the buffer, they can accumulate together in the buffer. When you read from it, you get a chunk of data that may contain multiple messages or even partial messages.
+
++ Reading and Parsing Logic: If your reading logic doesn't parse and separate messages, you may end up with a merged string of messages in a single read. Without a clear delimiter or length prefix, it becomes challenging to identify where one message ends and the next one begins.
+
+so packet will be like that after set "$" as separator
+```txt
+>1731238961.080041539	1 05fe2356-f89b-4ab9-86d7-c41e141a4c15$c576ed8a-8e8a-4cbc-b5f1-84bfe005632c$
+>1731238961.116574179	73	8ea3c408-55de-48b5-a38c-9db85af44553
+?1731238961.136793061	109	b922e865-ff29-4cc7-a7a5-94bc043da667$70c8f8a2-033a-42d9-abd5-bf4b9bd7c3f0$
+```
+so we should add repair tool which fixes this file before comparing two files by extract many uuid in same line to separate line we implement all this in `generatetlsfiles.sh`, now we have two files have all packets sent and received now we will try to mapped and generate graph show latency and missing packet , will be like that 
+![atency_vs_seq_number](./assets/latency_vs_seq_number.png)
+show `Total packet` & `Packet Rate` & `average` & `P95` & `P99`
+
+### Profiler
+we want make profiler to know all execution code done when data is process (logs + encryption + decrytion + all system call + others)
+
+We use [async-profiler](https://github.com/async-profiler/async-profiler) to profile java app and genrate flamgraph like that (one for client process & other for server process )
+
+![flame_server](./assets/flam_server.png)
+![flame_client](./assets/flam_client.png)
+
+to run mointoring script just run `start.sh` in `monitoring` dir the enter profileing duration time which will set to `tshark` & `async-profiler` to monitor application process
+```bash
+@youssefshibl ➜ /workspaces/encrypto-/monitoring (main) $ ./start.sh 
+Enter Monitoring Time (default: 100): 15
+Enter Packet Number Per Scond (default: 500 p/s): 500
+Enter Time duration for the test (default: 5s): 4
+Netcat started with PID: 19372
+Server started with PID: 19411
+Client started with PID: 19456
+Client monitor started with PID: 19527
+Server monitor started with PID: 19528
+Server profiler started with PID: 19529
+Client profiler started with PID: 19530
+Running as user "root" and group "root". This could be dangerous.
+Running as user "root" and group "root". This could be dangerous.
+Capturing on 'Loopback: lo'
+Capturing on 'Loopback: lo'
+Connected to server 127.0.0.1 on port 9003
+1808 Connection closed.
+Waiting for client to finish
+1980 
+
+Plot saved as 'latency_vs_seq_number.png'
+### Monitoring Complete ###
+./start.sh: line 1: kill: (19527) - No such process
+./start.sh: line 1: kill: (19528) - No such process
+./start.sh: line 1: kill: (19529) - No such process
+./start.sh: line 1: kill: (19530) - No such process
+```
+
+### Profile Examples
+
+#### profile_time=200s , packet_rate=2000p/s , trafic_time=160
+```bash
+@youssefshibl ➜ /workspaces/encrypto-/monitoring (main) $ ./start.sh 
+Enter Monitoring Time (default: 100): 200
+Enter Packet Number Per Scond (default: 500 p/s): 2000
+Enter Time duration for the test (default: 5s): 160
+```
+![latency](./assets/latency_200_2000_160.png)
+
+cliet script may take time greater that 200s to send all trafic so if profile_time finish before send all trafic it stop sending trafic so may not reach to target number of tafic , for Client
+![flamgaph](./assets/falm_client_200_2000_160.png)
+for Server
+![falmgrap](./assets/falm_server_200_2000_160.png)
+
+
+
 
 
 
