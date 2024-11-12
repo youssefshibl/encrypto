@@ -203,10 +203,21 @@ Enter Time duration for the test (default: 5s): 160
 ```
 ![latency](./assets/latency_200_2000_160.png)
 
-cliet script may take time greater that 200s to send all trafic so if profile_time finish before send all trafic it stop sending trafic so may not reach to target number of tafic , for Client
+client_test.py script may take time greater than 200s to send all traffic so if profile_time finishes before send all traffic it stop sending traffic so may not reach the target number of traffic ,Flamgraph for Client
 ![flamgaph](./assets/falm_client_200_2000_160.png)
-for Server
+Flamgraph for Server
 ![falmgrap](./assets/falm_server_200_2000_160.png)
+As you see log4j takes more CPU utilization  so the next optimization will try to refactor this issue 
+
+
+##  Deb package Pipeline
+I am making a GitHub action pipeline that compiles code to binary using [GraalVM](https://www.graalvm.org/) after that copy the new version to `encrypto` dir (deb dir) then build the package 
+```bash
+dpkg-deb --root-owner-group --build encrypto
+```
+then release the package with binary 
+
+
 
 
 
