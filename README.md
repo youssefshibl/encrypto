@@ -150,7 +150,7 @@ so packet will be like that after set "$" as separator
 >1731238961.116574179	73	8ea3c408-55de-48b5-a38c-9db85af44553
 ?1731238961.136793061	109	b922e865-ff29-4cc7-a7a5-94bc043da667$70c8f8a2-033a-42d9-abd5-bf4b9bd7c3f0$
 ```
-so we should add repair tool which fixes this file before comparing two files by extract many uuid in same line to separate line we implement all this in `generatetlsfiles.sh`, now we have two files have all packets sent and received now we will try to mapped and generate graph show latency and missing packet , will be like that 
+so we should add repair tool which fixes this file before comparing two files by extract many uuid in same line to separate line we implement all this in `process_capture.py`, now we have two files have all packets sent and received now we will try to mapped and generate graph show latency and missing packet , will be like that 
 ![atency_vs_seq_number](./assets/latency_vs_seq_number.png)
 show `Total packet` & `Packet Rate` & `average` & `P95` & `P99`
 
